@@ -5,16 +5,16 @@
 #define GPSSerial Serial1
 
 Adafruit_GPS GPS(&GPSSerial);
-BLEService btService("180F");
-BLEUnsignedCharCharacteristic speedCharacteristic("fff1", BLEBroadcast);
-BLEFloatCharacteristic accelXCharacteristic("2a3F", BLEBroadcast);
-BLEFloatCharacteristic accelYCharacteristic("2b3F", BLEBroadcast);
-BLEFloatCharacteristic accelZCharacteristic("183E", BLEBroadcast);
-BLEFloatCharacteristic gyroXCharacteristic("183A", BLEBroadcast);
-BLEFloatCharacteristic gyroYCharacteristic("2a2F", BLEBroadcast);
-BLEFloatCharacteristic gyroZCharacteristic("1a3B", BLEBroadcast);
+BLEService teleBtService("89566a2e-177b-11ee-be56-0242ac120002");
+BLEUnsignedCharCharacteristic speedCharacteristic("fff1", BLERead);
+BLEFloatCharacteristic accelXCharacteristic("aa10", BLERead);
+BLEFloatCharacteristic accelYCharacteristic("2b3F", BLERead);
+BLEFloatCharacteristic accelZCharacteristic("183E", BLERead);
+BLEFloatCharacteristic gyroXCharacteristic("183A", BLERead);
+BLEFloatCharacteristic gyroYCharacteristic("2a2F", BLERead);
+BLEFloatCharacteristic gyroZCharacteristic("1a3B", BLERead);
 
-int speedKmh = 0;
+float speedKmh = 0;
 float accelX = 0.0;
 float accelY = 0.0;
 float accelZ = 0.0;
@@ -41,18 +41,17 @@ void setup() {
   GPS.sendCommand(PMTK_SET_NMEA_UPDATE_10HZ); // 10 Hz update rate
   BLE.setDeviceName("Telemetruino-A563221");
   BLE.setLocalName("Telemetruino-A563221");
+  BLE.setAdvertisedService(teleBtService);
 
-  btService.addCharacteristic(speedCharacteristic);
-  btService.addCharacteristic(accelXCharacteristic);
-  btService.addCharacteristic(accelYCharacteristic);
-  btService.addCharacteristic(accelZCharacteristic);
-  btService.addCharacteristic(gyroXCharacteristic);
-  btService.addCharacteristic(gyroYCharacteristic);
-  btService.addCharacteristic(gyroZCharacteristic);
-  BLE.addService(btService);
+  teleBtService.addCharacteristic(speedCharacteristic);
+  teleBtService.addCharacteristic(accelXCharacteristic);
+  teleBtService.addCharacteristic(accelYCharacteristic);
+  teleBtService.addCharacteristic(accelZCharacteristic);
+  teleBtService.addCharacteristic(gyroXCharacteristic);
+  teleBtService.addCharacteristic(gyroYCharacteristic);
+  teleBtService.addCharacteristic(gyroZCharacteristic);
+  BLE.addService(teleBtService);
   BLE.setConnectable(true);
-
-  BLE.advertise();
 }
 
 void updateReadings(){
@@ -63,6 +62,7 @@ void updateReadings(){
   gyroXCharacteristic.writeValue(gyroX);
   gyroYCharacteristic.writeValue(gyroY);
   gyroZCharacteristic.writeValue(gyroZ);
+  BLE.advertise();
 }
 
 void loop() {
@@ -75,6 +75,8 @@ void loop() {
     IMU.readAcceleration(accelX, accelY, accelZ);
   if (IMU.gyroscopeAvailable())
     IMU.readGyroscope(gyroX, gyroY, gyroZ);
+    Serial.println("Gyro X");
+    Serial.println(gyroX);
 
   updateReadings();
 }
