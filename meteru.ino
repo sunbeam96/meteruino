@@ -75,8 +75,6 @@ void loop() {
     IMU.readAcceleration(accelX, accelY, accelZ);
   if (IMU.gyroscopeAvailable())
     IMU.readGyroscope(gyroX, gyroY, gyroZ);
-    Serial.println("Gyro X");
-    Serial.println(gyroX);
 
   updateReadings();
 }
