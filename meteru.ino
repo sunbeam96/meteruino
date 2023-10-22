@@ -14,7 +14,7 @@ BLEFloatCharacteristic gyroXCharacteristic("183A", BLERead);
 BLEFloatCharacteristic gyroYCharacteristic("2a2F", BLERead);
 BLEFloatCharacteristic gyroZCharacteristic("1a3B", BLERead);
 
-float speedKmh = 0;
+float speedKmh = 0.0;
 float accelX = 0.0;
 float accelY = 0.0;
 float accelZ = 0.0;
@@ -41,6 +41,7 @@ void setup() {
   GPS.sendCommand(PMTK_SET_NMEA_UPDATE_10HZ); // 10 Hz update rate
   BLE.setDeviceName("Telemetruino-A563221");
   BLE.setLocalName("Telemetruino-A563221");
+  BLE.setConnectionInterval(0x0001, 0x0c80); // 1.25 ms minimum, 4 s maximum
   BLE.setAdvertisedService(teleBtService);
 
   teleBtService.addCharacteristic(speedCharacteristic);
@@ -75,6 +76,8 @@ void loop() {
     IMU.readAcceleration(accelX, accelY, accelZ);
   if (IMU.gyroscopeAvailable())
     IMU.readGyroscope(gyroX, gyroY, gyroZ);
+    Serial.println("Gyro X");
+    Serial.println(gyroX);
 
   updateReadings();
 }
