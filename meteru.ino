@@ -4,24 +4,24 @@
 #include <avr/dtostrf.h>
 
 #define GPSSerial Serial1
+#define GPSECHO false
 
 Adafruit_GPS GPS(&GPSSerial);
 BLEService teleBtService("00002000-0000-1000-8000-00805f9b34fb");
 char bleBuffer[27] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
-//char testBuffer[3] = {1, 1, 1};
 BLECharacteristic collectiveGpsAndImuCharacteristic_("00002137-0000-1000-8000-00805f9b34fb", BLERead, bleBuffer);
 
 float speedKmh = 0.0f;
 float accelX = 0.0f;
 float accelY = 0.0f;
 float accelZ = 0.0f;
-float gyroX = 0.0f;
+float gyroX = 0.0f; 
 float gyroY = 0.0f;
 float gyroZ = 0.0f;
+uint32_t timer = millis();
 
 void setup() {
-  while (!Serial);
-  Serial.begin(115200);
+  Serial.begin(230400);
   GPS.begin(9600);
 
   if (!BLE.begin()) {
@@ -34,8 +34,10 @@ void setup() {
     while (1);
   }
 
-  GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
+  GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCONLY);
   GPS.sendCommand(PMTK_SET_NMEA_UPDATE_10HZ); // 10 Hz update rate
+  delay(1000);
+
   BLE.setDeviceName("Telemetruino-A563221");
   BLE.setLocalName("Telemetruino-A563221");
   BLE.setConnectionInterval(0x0001, 0x0c80); // 1.25 ms minimum, 4 s maximum
@@ -88,10 +90,17 @@ void updateReadings(){
 }
 
 void loop() {
+  timer = millis(); // reset the timer
+  while (GPS.available() && (millis() - timer < 100))
+  {
+    GPS.read();
+    if (GPS.newNMEAreceived()) {
+      GPS.parse(GPS.lastNMEA());
+    }
+  }
+
   if (GPS.fix)
     speedKmh = GPS.speed*1.852;
-  else
-    Serial.println("Waiting for GPS fix...");
 
   if (IMU.accelerationAvailable())
     IMU.readAcceleration(accelX, accelY, accelZ);
